@@ -9,6 +9,8 @@ headers = {"Content-Type":"application/json"}
 
 letters=string.ascii_lowercase
 
+address = "http://localhost:5000"
+
 
 
 for i in range(0,100):
@@ -21,10 +23,10 @@ for i in range(0,100):
 		recipient = ''.join(random.choice(letters) for i in range(30))
 		payload = {"sender":sender, "recipient":recipient, "amount":random.randint(1,20)}
 
-		r= requests.post("http://172.16.105.238:82/transactions/new", headers=headers, data=json.dumps(payload))
+		r= requests.post(address + "/transactions/new", headers=headers, data=json.dumps(payload))
 
 	if c==2:
-		r = requests.get("http://172.16.105.238:82/mine")
+		r = requests.get(address + "/mine")
 
 	if c==3:
-		r=requests.get("http://172.16.105.238:82/nodes/resolve")
+		r=requests.get(adress + "/nodes/resolve")
