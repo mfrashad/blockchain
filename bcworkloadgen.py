@@ -29,4 +29,4 @@ for i in range(0,100):
 		r = requests.get(address + "/mine")
 
 	if c==3:
-		r=requests.get(adress + "/nodes/resolve")
+		r=requests.get(address + "/nodes/resolve")
