@@ -23,7 +23,13 @@ services:
       - "5000:5000"
     deploy:
       replicas: 3
-
+  pow:
+    image: pow:latest
+    build: .
+    ports:
+      - "5001:5001"
+    deploy:
+      replicas: 5
   cadvisor:
     image: google/cadvisor
     networks:

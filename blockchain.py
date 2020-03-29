@@ -168,11 +168,12 @@ class Blockchain:
         last_proof = last_block['proof']
         last_hash = self.hash(last_block)
 
-        proof = 0
-        while self.valid_proof(last_proof, proof, last_hash) is False:
-            proof += 1
+        headers = {"Content-Type":"application/json"}
+        address = "http://pow:5001"
+        payload = {"last_proof":last_proof, "last_hash":last_hash}
 
-        return proof
+        r= requests.post(address + "/pow", headers=headers, data=json.dumps(payload))
+        return json.loads(r.text)['proof']
 
     @staticmethod
     def valid_proof(last_proof, proof, last_hash):
