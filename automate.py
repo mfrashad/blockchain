@@ -16,7 +16,7 @@ headers = {"Content-Type":"application/json"}
 
 address = "http://localhost:5000"
 
-for i in range(0,100):
+for i in range(0,1000):
     print(".", end='', flush=True)
     waitfor = numpy.random.exponential(0.01)
     time.sleep(waitfor)
