@@ -2,65 +2,25 @@
 
 This source code for the blockchain part on [Building a Blockchain](https://medium.com/p/117428612f46). 
 
-## Installation
+## Setup
 
-1. Make sure [Python 3.6+](https://www.python.org/downloads/) is installed. 
-2. Install [pipenv](https://github.com/kennethreitz/pipenv). 
 
-```
-$ pip install pipenv 
-```
-3. Install requirements  
-```
-$ pipenv install 
-``` 
-
-4. Run the server:
-    * `$ pipenv run python blockchain.py` 
-    * `$ pipenv run python blockchain.py -p 5001`
-    * `$ pipenv run python blockchain.py --port 5002`
-    
-## Docker
-
-Another option for running this blockchain program is to use Docker.  
-
-### Docker Container
-
-Follow the instructions below to create a local Docker container:
-
-1. Clone this repository
-2. Build the docker container
-
-```
-$ docker build -t blockchain .
-```
-
-3. Run the container
-
-```
-$ docker run --rm -p 80:5000 blockchain
-```
-
-4. To add more instances, vary the public port number before the colon:
-
-```
-$ docker run --rm -p 81:5000 blockchain
-$ docker run --rm -p 82:5000 blockchain
-$ docker run --rm -p 83:5000 blockchain
-```
-
-### Docker Swarm
+### Docker Swarm Installation
 
 Follow these instructions to deploy the application in swarm mode
 
 #### 1. Clone the repository
-#### 2. Initialize new Swarm
+#### 2. Build the docker container
+```
+$ docker build -t blockchain .
+```
+#### 3. Initialize new Swarm
 
 ```
 $ docker swarm init --advertise-addr $(hostname -i)
 ```
 
-#### 3. Deploy applications to the Swarm
+#### 4. Deploy applications to the Swarm
 ```
 $ docker stack deploy -c docker-compose.stack.yml blockchain
 ```
@@ -82,69 +42,81 @@ p2cgjrmcjtr8        blockchain_grafana            replicated          1/1       
 cmt9v3j9zdxb        blockchain_node-exporter      global              1/1                 prom/node-exporter:latest   
 799fg8sq15ow        blockchain_prometheus         replicated          1/1                 prom/prometheus:latest      
 ```
+## Documentation
 
-#### 4. Register nodes to blockchain app
+### Register Nodes
+You can run the `register_nodes.py` script to register all blockchain_app containers running in current swarm node. You need to run this in *all swarm nodes* to make it work consensusly across the swarm nodes.
 
-Currently, three blockchain node will be running. However, each of the node are not aware of the neighboring nodes and not working in consensus. To make it consensus, the neighboring nodes need to be registered at each of the node.
-
-You can confirm this by accessing `http://localhost:5000/chain`. It will randomly (based on docker swarm load balancing) direct you to any of the 3 blockchain node chain.
-
-You will get a similar looking result
 ```
-{"chain":[{"index":1,"previous_hash":"1","proof":100,"timestamp":1585066425.7070894,"transactions":[]}],"length":1}
+$ python3 register_nodes.py
 ```
 
-However as you refresh, you will notice the result changes. Meaning the block chains are different at each node. And resolving the conflict by accessing `http://localhost:5000/nodes/resolve` also does not fix the issue as the node are not aware of the neighboring nodes.
+You will get similar looking result as follows.
 
-The `automate.py` script will find out all the addresses of the blockchain containers/nodes (not swarm nodes) and register the nodes at each of the nodes. Additionally, it will also automate some blockchain transactions and mining operations. And finally resolve all the chain conflicts at the end.
+```
+Processes :  ['ptn7em7ei3cj', 'mzeok0kxsleb', 'aina1uglaaow']
+ptn7em7ei3cj : 10.0.1.3
+mzeok0kxsleb : 10.0.1.4
+aina1uglaaow : 10.0.1.5
 
-Run the `automate.py` script.
+Overlay_addresses :  ['http://10.0.1.3:5000', 'http://10.0.1.4:5000', 'http://10.0.1.5:5000'] 
+
+Containers in current swarm node :  ['ed9ef5336d66', '50f92c34bf0a', '3b30cf0b18d1']
+ed9ef5336d66 : 172.18.0.9
+50f92c34bf0a : 172.18.0.7
+3b30cf0b18d1 : 172.18.0.8
+
+addresses :  ['http://172.18.0.9:5000', 'http://172.18.0.7:5000', 'http://172.18.0.8:5000'] 
+
+Registering node at  http://172.18.0.9:5000
+{"nodes": ["http://10.0.1.3:5000", "http://10.0.1.4:5000", "http://10.0.1.5:5000"]}
+{"message":"New nodes have been added","total_nodes":["10.0.1.4:5000","10.0.1.5:5000","10.0.1.3:5000"]}
+
+Registering node at  http://172.18.0.7:5000
+{"nodes": ["http://10.0.1.3:5000", "http://10.0.1.4:5000", "http://10.0.1.5:5000"]}
+{"message":"New nodes have been added","total_nodes":["10.0.1.4:5000","10.0.1.5:5000","10.0.1.3:5000"]}
+
+Registering node at  http://172.18.0.8:5000
+{"nodes": ["http://10.0.1.3:5000", "http://10.0.1.4:5000", "http://10.0.1.5:5000"]}
+{"message":"New nodes have been added","total_nodes":["10.0.1.3:5000","10.0.1.5:5000","10.0.1.4:5000"]}
+```
+
+### Automate Load
+You can run the `automate.py` script to randomly call 100 blockchain operations between creating new transactions, mining new blocks, and resolving node conflicts.
+
 ```
 $ python3 automate.py
 ```
 
-The script will give a similar looking result as following
+You will get a similar looking result as follows.
 ```
-Containers ID :  ['dcea1c5a48d1', '91f906d06778', 'bd90ce134d93'] 
-
-dcea1c5a48d1 : 172.18.0.9
-91f906d06778 : 172.18.0.12
-bd90ce134d93 : 172.18.0.11
-
-addresses :  ['http://172.18.0.9:5000', 'http://172.18.0.12:5000', 'http://172.18.0.11:5000'] 
-
-Registering node at  http://172.18.0.9:5000
-{"nodes": ["http://172.18.0.9:5000", "http://172.18.0.12:5000", "http://172.18.0.11:5000"]}
-{"message":"New nodes have been added","total_nodes":["172.18.0.12:5000","172.18.0.11:5000","172.18.0.9:5000"]}
-
-Registering node at  http://172.18.0.12:5000
-{"nodes": ["http://172.18.0.9:5000", "http://172.18.0.12:5000", "http://172.18.0.11:5000"]}
-{"message":"New nodes have been added","total_nodes":["172.18.0.12:5000","172.18.0.9:5000","172.18.0.11:5000"]}
-
-Registering node at  http://172.18.0.11:5000
-{"nodes": ["http://172.18.0.9:5000", "http://172.18.0.12:5000", "http://172.18.0.11:5000"]}
-{"message":"New nodes have been added","total_nodes":["172.18.0.9:5000","172.18.0.12:5000","172.18.0.11:5000"]}
-
-
 Automating blockchain operations...
 
 ....................................................................................................
-Resolving nodes conflict...
-
-
  Process finished 
 ```
 
-Then you can confirm all the nodes are working in consensus by opening `http://localhost:5000/chain`. As you refresh, you will notice that you get the same chain every time.
+### Resolve Nodes
+You can run the `resolve_nodes.py` script to call the resolve nodes function each container in current swarm nodes. You need to run this in *all swarm nodes* if you want to make sure all chain is in consensus across all the nodes in the swarm.
 
-Alternatively, you can access each node address directly based on result in the script. In this example it will be 
 ```
-addresses :  ['http://172.18.0.9:5000', 'http://172.18.0.12:5000', 'http://172.18.0.11:5000'] 
+$ python3 resolve_nodes.py
 ```
-Then you can access `http://172.18.0.9:5000/chain` to see the chain of that exact node.
 
-#### 5. Monitoring
+You will get a similar looking result as follows.
+```
+Containers in current swarm node :  ['03804103d71b', 'd2bddff0b4b0', '83620ab9f122']
+03804103d71b : 172.18.0.6
+d2bddff0b4b0 : 172.18.0.5
+83620ab9f122 : 172.18.0.4
 
+addresses :  ['http://172.18.0.6:5000', 'http://172.18.0.5:5000', 'http://172.18.0.4:5000'] 
+
+
+Resolving nodes conflict...
+```
+
+### Monitoring
 You can view the metrics of the containers and service on grafana. By accessing `http://localhost:3000` . the credentials are
 ```
 user: admin
@@ -153,9 +125,19 @@ password: admin
 
 For prometheus, it can be accessed at `http://localhost:9090`
 
+### Optimization
+
+You can access the 2 git branches for the optimized app
+```
+$ git checkout optimization1-modified-pow
+```
+or 
+```
+$ git checkout optimization2-scaling-pow
+```
 
 
-## Blockchain App Usage
+## Blockchain App API 
 
 The following are the possible operation that you can do through the API endpoint
 
