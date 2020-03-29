@@ -137,7 +137,7 @@ $ git checkout optimization2-scaling-pow
 ```
 
 
-## Blockchain App API 
+### Blockchain App API 
 
 The following are the possible operation that you can do through the API endpoint
 
