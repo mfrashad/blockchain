@@ -10,7 +10,7 @@ overlay_addresses = []
 port = "5000"
 
 for process in processes:
-    stream = os.popen(f'sudo docker inspect {process} | grep "10.0.1." | grep ":" -v | cut -d / -f1 | sed \'s/[ "]//g\'')
+    stream = os.popen(f'sudo docker inspect {process} | grep "10.0." | grep ":" -v | cut -d / -f1 | sed \'s/[ "]//g\'')
     ip = stream.read().strip()
     print(f'{process} : {ip}')
     overlay_addresses.append(f'http://{ip}:{port}')
